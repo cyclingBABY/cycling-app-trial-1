@@ -31,6 +31,321 @@ import com.example.ui.theme.*
 import java.util.Locale
 
 @Composable
+fun AdminWebSidebarItem(
+    label: String,
+    icon: ImageVector,
+    active: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (active) Color(0xFF1E2833) else Color.Transparent)
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (active) CwcGreen else Color.LightGray,
+            modifier = Modifier.size(16.dp)
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+            color = if (active) Color.White else Color.LightGray
+        )
+    }
+}
+
+@Composable
+fun RenderAdminSubTab(
+    activeTab: String,
+    viewModel: CwcViewModel,
+    posts: List<PostEntity>,
+    marketplace: List<MarketplaceItemEntity>,
+    clubs: List<ClubEntity>,
+    events: List<EventEntity>,
+    rides: List<RideEntity>
+) {
+    when (activeTab) {
+        "dashboard" -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                item {
+                    Text("Administrative Control System", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Central database diagnostics monitoring Kampala & Beyond networks", fontSize = 12.sp, color = Color.Gray)
+                }
+
+                // System Quick Navigation Dashboard Panel
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.15f))
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Text("System Quick Action Panel", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("Instantly switch perspective to the user/rider interface or exit secure session.", fontSize = 11.sp, color = Color.LightGray)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Button(
+                                    onClick = { viewModel.toggleAdminRole() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = CwcGreen, contentColor = Color.Black),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f).height(38.dp).testTag("admin_action_switch_to_user")
+                                ) {
+                                    Icon(Icons.Filled.DirectionsBike, contentDescription = null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Rider View", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+
+                                Button(
+                                    onClick = { viewModel.performLogout() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f).height(38.dp).testTag("admin_action_logout")
+                                ) {
+                                    Icon(Icons.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Logout", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Numeric Metrics Grid Row
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            TelemetryMetricCard(title = "FORUM DISCUSSIONS", value = "${posts.size} Posts", icon = Icons.Filled.Forum, modifier = Modifier.weight(1f))
+                            TelemetryMetricCard(title = "CLASSIFIED GEARS", value = "${marketplace.size} Listings", icon = Icons.Filled.Sell, modifier = Modifier.weight(1f))
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            TelemetryMetricCard(title = "CLUBS ENROLLED", value = "${clubs.size} Active", icon = Icons.Filled.DirectionsBike, modifier = Modifier.weight(1f))
+                            TelemetryMetricCard(title = "SCHEDULED RIDES", value = "${events.size} Events", icon = Icons.Filled.Event, modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+
+                // Moderator Quick Warning Alert info
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.VerifiedUser, contentDescription = null, tint = CwcGreen)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Unified Admin Credentials", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text("This dashboard directly moderates contents stored inside Room's SQLite engine. Modifications apply in real-time across the entire mobile client interface.", fontSize = 12.sp, color = Color.LightGray)
+                        }
+                    }
+                }
+            }
+        }
+
+        "posts" -> {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)) {
+                Text("Moderate Forum Content", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Remove inappropriate, spam, or misleading reports securely", fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 12.dp))
+
+                if (posts.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No posts exists in database.", color = Color.Gray)
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(posts) { post ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column {
+                                            Text(post.authorName, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                                            Text(post.authorLocation, fontSize = 11.sp, color = Color.Gray)
+                                        }
+                                        Button(
+                                            onClick = { viewModel.deleteSocialPostAdmin(post) },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.2f), contentColor = Color.Red),
+                                            shape = RoundedCornerShape(6.dp),
+                                            modifier = Modifier.height(32.dp).testTag("admin_delete_post_${post.id}")
+                                        ) {
+                                            Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(14.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Remove", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(post.caption, fontSize = 12.5.sp, color = Color.LightGray)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        "marketplace" -> {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)) {
+                Text("Classified Consignments Review", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Approve or reject equipment postings submitted by local riders", fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 12.dp))
+
+                if (marketplace.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No marketplace gear posted.", color = Color.Gray)
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(marketplace) { item ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(item.title, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                                            Text("Listed Price: $${item.priceUsd} • Category: ${item.category}", fontSize = 11.sp, color = CwcGreen, fontWeight = FontWeight.Bold)
+                                            Text("Seller: ${item.sellerName} (${item.phone})", fontSize = 11.sp, color = Color.Gray)
+                                        }
+
+                                        // Approval validation buttons
+                                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            if (!item.isApproved) {
+                                                Button(
+                                                    onClick = { viewModel.approveItemAdmin(item.id) },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = CwcGreen, contentColor = Color.Black),
+                                                    modifier = Modifier.height(30.dp).testTag("admin_approve_item_${item.id}"),
+                                                    shape = RoundedCornerShape(6.dp)
+                                                ) {
+                                                    Text("Approve", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            }
+                                            Button(
+                                                onClick = { viewModel.deleteItemAdmin(item) },
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.2f), contentColor = Color.Red),
+                                                modifier = Modifier.height(30.dp).testTag("admin_reject_item_${item.id}"),
+                                                shape = RoundedCornerShape(6.dp)
+                                            ) {
+                                                Text("Decline", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(item.description, fontSize = 12.sp, color = Color.LightGray)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        "users" -> {
+            // Riders management database simulation
+            val ridersList = listOf(
+                "Arthur Mukasa" to "Jinja base • General warnings",
+                "Sarah Namubiru" to "Kampala base • Verified Champion",
+                "Dennis Ssekitoleko" to "Wakiso base • Advanced rider",
+                "Aisha Nakato" to "Entebbe base • Leisure cruiser"
+            )
+
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)) {
+                Text("Rider Registries Moderation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Issue warnings or verify active profiles on standard safety criteria", fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 12.dp))
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(ridersList) { rider ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(rider.first, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                                    Text(rider.second, fontSize = 11.sp, color = Color.Gray)
+                                }
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Button(
+                                        onClick = { viewModel.suspendCyclistUser(rider.first) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow.copy(alpha = 0.15f), contentColor = Color.Yellow),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier.height(30.dp).testTag("warn_user_${rider.first.replace(" ", "")}")
+                                    ) {
+                                        Text("Warn", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                    Button(
+                                        onClick = { /* verify rider */ },
+                                        colors = ButtonDefaults.buttonColors(containerColor = CwcGreen.copy(alpha = 0.15f), contentColor = CwcGreen),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier.height(30.dp)
+                                    ) {
+                                        Text("Verify", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        "publish" -> {
+            AdminPublishScreen(viewModel)
+        }
+    }
+}
+
+@Composable
 fun AdminScreen(viewModel: CwcViewModel) {
     val posts by viewModel.posts.collectAsState()
     val marketplace by viewModel.marketplaceItems.collectAsState()
@@ -40,330 +355,196 @@ fun AdminScreen(viewModel: CwcViewModel) {
 
     var activeModerationTab by remember { mutableStateOf("dashboard") } // dashboard, users, posts, marketplace, publish
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // --- ADMIN WEB NAVIGATION HEADER ---
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF1E2833)) // slate header
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Filled.Security, contentDescription = null, tint = CwcGreen, modifier = Modifier.size(24.dp).padding(start = 6.dp))
-            Text("CWC ADMIN PORTAL", color = Color.White, fontWeight = FontWeight.Black, fontSize = 13.sp, modifier = Modifier.padding(end = 8.dp))
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isWide = maxWidth >= 600.dp
 
-            AdminTabItem(label = "Dashboard", active = activeModerationTab == "dashboard", onClick = { activeModerationTab = "dashboard" })
-            AdminTabItem(label = "Publish Content", active = activeModerationTab == "publish", onClick = { activeModerationTab = "publish" })
-            AdminTabItem(label = "Moderate Forums", active = activeModerationTab == "posts", onClick = { activeModerationTab = "posts" })
-            AdminTabItem(label = "Approve Gear", active = activeModerationTab == "marketplace", onClick = { activeModerationTab = "marketplace" })
-            AdminTabItem(label = "Rider Registry", active = activeModerationTab == "users", onClick = { activeModerationTab = "users" })
-
-            Spacer(modifier = Modifier.width(4.dp))
-            // Quick navigation to user view
+        if (isWide) {
+            // DETAILED FULL-SCREEN DESKTOP WEB APPLICATION VIEW WITH SIDEBAR
             Row(
                 modifier = Modifier
-                    .background(CwcGreen.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-                    .border(1.dp, CwcGreen, RoundedCornerShape(6.dp))
-                    .clickable { viewModel.toggleAdminRole() }
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    .fillMaxSize()
+                    .background(Color(0xFF0C0E14))
             ) {
-                Icon(Icons.Filled.DirectionsBike, contentDescription = null, tint = CwcGreen, modifier = Modifier.size(14.dp))
-                Text("Rider View", fontSize = 11.sp, color = CwcGreen, fontWeight = FontWeight.Bold)
-            }
-
-            // Quick exit to landing page (logout)
-            Row(
-                modifier = Modifier
-                    .background(Color.Red.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-                    .border(1.dp, Color.Red, RoundedCornerShape(6.dp))
-                    .clickable { viewModel.performLogout() }
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(Icons.Filled.ExitToApp, contentDescription = null, tint = Color.Red, modifier = Modifier.size(14.dp))
-                Text("Logout to Landing", fontSize = 11.sp, color = Color.Red, fontWeight = FontWeight.Bold)
-            }
-        }
-
-        // --- SUB CONTENT ---
-        when (activeModerationTab) {
-            "dashboard" -> {
-                LazyColumn(
+                // Lefthand Web Control Sidebar
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .width(260.dp)
+                        .fillMaxHeight()
+                        .background(Color(0xFF131722))
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    item {
-                        Text("Administrative Control System", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        Text("Central database diagnostics monitoring Kampala & Beyond networks", fontSize = 12.sp, color = Color.Gray)
-                    }
-
-                    // System Quick Navigation Dashboard Panel
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.15f))
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        // Portal Identity Logo Header
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Text("System Quick Action Panel", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 13.sp)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text("Instantly switch perspective to the user/rider interface or exit secure session.", fontSize = 11.sp, color = Color.LightGray)
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    Button(
-                                        onClick = { viewModel.toggleAdminRole() },
-                                        colors = ButtonDefaults.buttonColors(containerColor = CwcGreen, contentColor = Color.Black),
-                                        shape = RoundedCornerShape(8.dp),
-                                        modifier = Modifier.weight(1f).height(38.dp).testTag("admin_action_switch_to_user")
-                                    ) {
-                                        Icon(Icons.Filled.DirectionsBike, contentDescription = null, modifier = Modifier.size(14.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text("Rider View", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    }
-
-                                    Button(
-                                        onClick = { viewModel.performLogout() },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White),
-                                        shape = RoundedCornerShape(8.dp),
-                                        modifier = Modifier.weight(1f).height(38.dp).testTag("admin_action_logout")
-                                    ) {
-                                        Icon(Icons.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(14.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text("Logout", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                            }
+                            Icon(Icons.Filled.Security, contentDescription = null, tint = CwcGreen, modifier = Modifier.size(22.dp))
+                            Text("UCN SaaS Platform", color = Color.White, fontWeight = FontWeight.Black, fontSize = 14.sp)
                         }
-                    }
 
-                    // Numeric Metrics Grid Row
-                    item {
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                TelemetryMetricCard(title = "FORUM DISCUSSIONS", value = "${posts.size} Posts", icon = Icons.Filled.Forum, modifier = Modifier.weight(1f))
-                                TelemetryMetricCard(title = "CLASSIFIED GEARS", value = "${marketplace.size} Listings", icon = Icons.Filled.Sell, modifier = Modifier.weight(1f))
-                            }
-                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                TelemetryMetricCard(title = "CLUBS ENROLLED", value = "${clubs.size} Active", icon = Icons.Filled.DirectionsBike, modifier = Modifier.weight(1f))
-                                TelemetryMetricCard(title = "SCHEDULED RIDES", value = "${events.size} Events", icon = Icons.Filled.Event, modifier = Modifier.weight(1f))
-                            }
-                        }
-                    }
-
-                    // Moderator Quick Warning Alert info
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            shape = RoundedCornerShape(12.dp)
+                        // Encryption session indicator
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF1E2638), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Filled.VerifiedUser, contentDescription = null, tint = CwcGreen)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Unified Admin Credentials", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text("This dashboard directly moderates contents stored inside Room's SQLite engine. Modifications apply in real-time across the entire mobile client interface.", fontSize = 12.sp, color = Color.LightGray)
-                            }
+                            Box(modifier = Modifier.size(7.dp).background(CwcGreen, CircleShape))
+                            Text("ADMIN ENCRYPTED", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+
+                        Text("PORTAL UTILITIES", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.padding(top = 8.dp))
+
+                        // Sidebar Action Selection Tabs
+                        AdminWebSidebarItem(label = "Dashboard", icon = Icons.Filled.Dashboard, active = activeModerationTab == "dashboard", onClick = { activeModerationTab = "dashboard" })
+                        AdminWebSidebarItem(label = "Publish Creator", icon = Icons.Filled.Publish, active = activeModerationTab == "publish", onClick = { activeModerationTab = "publish" })
+                        AdminWebSidebarItem(label = "Moderate Forums", icon = Icons.Filled.Forum, active = activeModerationTab == "posts", onClick = { activeModerationTab = "posts" })
+                        AdminWebSidebarItem(label = "Approve Gear", icon = Icons.Filled.Sell, active = activeModerationTab == "marketplace", onClick = { activeModerationTab = "marketplace" })
+                        AdminWebSidebarItem(label = "Rider Registry", icon = Icons.Filled.Group, active = activeModerationTab == "users", onClick = { activeModerationTab = "users" })
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Divider(color = Color.Gray.copy(alpha = 0.15f))
+                        Text("ROUTING PERSPECTIVES", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+
+                        // Perspective switch: back to phone client
+                        Button(
+                            onClick = { viewModel.toggleAdminRole() },
+                            colors = ButtonDefaults.buttonColors(containerColor = CwcGreen, contentColor = Color.Black),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth().height(36.dp).testTag("web_sidebar_switch_rider")
+                        ) {
+                            Icon(Icons.Filled.DirectionsBike, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Rider Client View", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        // Exit sessions
+                        Button(
+                            onClick = { viewModel.performLogout() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(36.dp)
+                                .border(1.dp, Color.Red.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                .testTag("web_sidebar_logout")
+                        ) {
+                            Icon(Icons.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Secure Signout", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
-            }
 
-            "posts" -> {
-                Column(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)) {
-                    Text("Moderate Forum Content", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Remove inappropriate, spam, or misleading reports securely", fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 12.dp))
+                // Thin vertical line separator
+                Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color.Gray.copy(alpha = 0.15f)))
 
-                    if (posts.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No posts exists in database.", color = Color.Gray)
-                        }
-                    } else {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(bottom = 80.dp)
-                        ) {
-                            items(posts) { post ->
-                                Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                                ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Column {
-                                                Text(post.authorName, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                                                Text(post.authorLocation, fontSize = 11.sp, color = Color.Gray)
-                                            }
-                                            Button(
-                                                onClick = { viewModel.deleteSocialPostAdmin(post) },
-                                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.2f), contentColor = Color.Red),
-                                                shape = RoundedCornerShape(6.dp),
-                                                modifier = Modifier.height(32.dp).testTag("admin_delete_post_${post.id}")
-                                            ) {
-                                                Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(14.dp))
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text("Remove", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(post.caption, fontSize = 12.5.sp, color = Color.LightGray)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            "marketplace" -> {
-                Column(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)) {
-                    Text("Classified Consignments Review", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Approve or reject equipment postings submitted by local riders", fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 12.dp))
-
-                    if (marketplace.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No marketplace gear posted.", color = Color.Gray)
-                        }
-                    } else {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(bottom = 80.dp)
-                        ) {
-                            items(marketplace) { item ->
-                                Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                                ) {
-                                    Column(modifier = Modifier.padding(14.dp)) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.Top
-                                        ) {
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(item.title, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                                                Text("Listed Price: $${item.priceUsd} • Category: ${item.category}", fontSize = 11.sp, color = CwcGreen, fontWeight = FontWeight.Bold)
-                                                Text("Seller: ${item.sellerName} (${item.phone})", fontSize = 11.sp, color = Color.Gray)
-                                            }
-
-                                            // Approval validation buttons
-                                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                                if (!item.isApproved) {
-                                                    Button(
-                                                        onClick = { viewModel.approveItemAdmin(item.id) },
-                                                        colors = ButtonDefaults.buttonColors(containerColor = CwcGreen, contentColor = Color.Black),
-                                                        modifier = Modifier.height(30.dp).testTag("admin_approve_item_${item.id}"),
-                                                        shape = RoundedCornerShape(6.dp)
-                                                    ) {
-                                                        Text("Approve", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                                    }
-                                                }
-                                                Button(
-                                                    onClick = { viewModel.deleteItemAdmin(item) },
-                                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.2f), contentColor = Color.Red),
-                                                    modifier = Modifier.height(30.dp).testTag("admin_reject_item_${item.id}"),
-                                                    shape = RoundedCornerShape(6.dp)
-                                                ) {
-                                                    Text("Decline", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                                }
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.height(6.dp))
-                                        Text(item.description, fontSize = 12.sp, color = Color.LightGray)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            "users" -> {
-                // Riders management database simulation
-                val ridersList = listOf(
-                    "Arthur Mukasa" to "Jinja base • General warnings",
-                    "Sarah Namubiru" to "Kampala base • Verified Champion",
-                    "Dennis Ssekitoleko" to "Wakiso base • Advanced rider",
-                    "Aisha Nakato" to "Entebbe base • Leisure cruiser"
-                )
-
-                Column(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)) {
-                    Text("Rider Registries Moderation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Issue warnings or verify active profiles on standard safety criteria", fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 12.dp))
-
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(bottom = 80.dp)
+                // Center workspace Area
+                Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    // Top Diagnostics Ribbon
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp)
+                            .background(Color(0xFF131722))
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        items(ridersList) { rider ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(rider.first, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                                        Text(rider.second, fontSize = 11.sp, color = Color.Gray)
-                                    }
+                        Text("UCN CORE SERVER • Uganda National Cycling Registry", color = Color.Gray, fontSize = 11.sp)
 
-                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Button(
-                                            onClick = { viewModel.suspendCyclistUser(rider.first) },
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow.copy(alpha = 0.15f), contentColor = Color.Yellow),
-                                            shape = RoundedCornerShape(6.dp),
-                                            modifier = Modifier.height(30.dp).testTag("warn_user_${rider.first.replace(" ", "")}")
-                                        ) {
-                                            Text("Warn", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                        Button(
-                                            onClick = { /* verify rider */ },
-                                            colors = ButtonDefaults.buttonColors(containerColor = CwcGreen.copy(alpha = 0.15f), contentColor = CwcGreen),
-                                            shape = RoundedCornerShape(6.dp),
-                                            modifier = Modifier.height(30.dp)
-                                        ) {
-                                            Text("Verify", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-                                }
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Box(modifier = Modifier.size(6.dp).background(CwcGreen, CircleShape))
+                                Text("Kampala Node: Active", fontSize = 10.sp, color = Color.LightGray)
                             }
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Icon(Icons.Filled.NetworkCheck, contentDescription = null, tint = CwcGreen, modifier = Modifier.size(12.dp))
+                                Text("Sync latency: 14ms", fontSize = 10.sp, color = Color.LightGray)
+                            }
+                            Text(
+                                "ADMIN CORE",
+                                fontSize = 9.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .background(Color(0xFF1E2638), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
                         }
+                    }
+
+                    // Thin horizontal separator line
+                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.Gray.copy(alpha = 0.15f)))
+
+                    // Selected Tab Content Workstation
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                        RenderAdminSubTab(
+                            activeTab = activeModerationTab,
+                            viewModel = viewModel,
+                            posts = posts,
+                            marketplace = marketplace,
+                            clubs = clubs,
+                            events = events,
+                            rides = rides
+                        )
                     }
                 }
             }
-            "publish" -> {
-                AdminPublishScreen(viewModel)
+        } else {
+            // COMPACT MOBILE ADAPTATION ON NARROW DISPLAY OR EMULATORS
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                // --- ADMIN WEB NAVIGATION HEADER ---
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF131722)) // slate header
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.Security, contentDescription = null, tint = CwcGreen, modifier = Modifier.size(20.dp).padding(start = 4.dp))
+                    Text("CWC SAAS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 11.sp, modifier = Modifier.padding(end = 4.dp))
+
+                    AdminTabItem(label = "Dashboard", active = activeModerationTab == "dashboard", onClick = { activeModerationTab = "dashboard" })
+                    AdminTabItem(label = "Publish", active = activeModerationTab == "publish", onClick = { activeModerationTab = "publish" })
+                    AdminTabItem(label = "Forums", active = activeModerationTab == "posts", onClick = { activeModerationTab = "posts" })
+                    AdminTabItem(label = "Gears", active = activeModerationTab == "marketplace", onClick = { activeModerationTab = "marketplace" })
+                    AdminTabItem(label = "Riders", active = activeModerationTab == "users", onClick = { activeModerationTab = "users" })
+
+                    Spacer(modifier = Modifier.width(4.dp))
+                    // Quick navigation back to rider
+                    IconButton(onClick = { viewModel.toggleAdminRole() }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Filled.DirectionsBike, contentDescription = null, tint = CwcGreen)
+                    }
+                    // Logout
+                    IconButton(onClick = { viewModel.performLogout() }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Filled.ExitToApp, contentDescription = null, tint = Color.Red)
+                    }
+                }
+
+                // Output compact workspace Area
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    RenderAdminSubTab(
+                        activeTab = activeModerationTab,
+                        viewModel = viewModel,
+                        posts = posts,
+                        marketplace = marketplace,
+                        clubs = clubs,
+                        events = events,
+                        rides = rides
+                    )
+                }
             }
         }
     }
